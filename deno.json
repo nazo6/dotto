@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "dev": "deno run --watch main.ts",
+    "run": "deno run -A example/main.ts"
+  },
+  "imports": {
+    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.4",
+    "@std/path": "jsr:@std/path@^0.224.0",
+    "@svarta/walk-it": "jsr:@svarta/walk-it@^5.0.1",
+    "@valibot/valibot": "jsr:@valibot/valibot@^0.30.0"
+  }
+}
