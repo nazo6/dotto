@@ -12,7 +12,8 @@
       "jsr:@std/path@^0.224.0": "jsr:@std/path@0.224.0",
       "jsr:@std/text@0.221": "jsr:@std/text@0.221.0",
       "jsr:@svarta/walk-it@^5.0.1": "jsr:@svarta/walk-it@5.0.1",
-      "jsr:@valibot/valibot@^0.30.0": "jsr:@valibot/valibot@0.30.0"
+      "jsr:@valibot/valibot@^0.30.0": "jsr:@valibot/valibot@0.30.0",
+      "npm:@types/node": "npm:@types/node@18.16.19"
     },
     "jsr": {
       "@cliffy/command@1.0.0-rc.4": {
@@ -62,6 +63,12 @@
       },
       "@valibot/valibot@0.30.0": {
         "integrity": "a0a8701bc789a7bf91bff22308c590c22ac7d6076617289b04125490954bebe2"
+      }
+    },
+    "npm": {
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
+        "dependencies": {}
       }
     }
   },

@@ -1,7 +1,7 @@
 {
   "tasks": {
     "dev": "deno run --watch main.ts",
-    "run": "deno run -A example/main.ts"
+    "run": "cd example && deno run --unstable-worker-options -A ../mod.ts"
   },
   "imports": {
     "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.4",

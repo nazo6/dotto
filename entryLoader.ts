@@ -1,10 +1,11 @@
-import * as v from "@valibot/valibot";
 import { walk } from "@svarta/walk-it";
-import { join } from "@std/path";
+import { EntryWorkerArgs, EntryWorkerResult } from "./entryWorker.ts";
+import { toFileUrl } from "@std/path";
 
-const EntrySchema = v.array(v.string());
-
-export async function loadEntries(rootDir: string) {
+export async function loadEntries(
+  rootDir: string,
+  workerPermissions?: Deno.PermissionOptions,
+) {
   const entryDirs: string[] = [];
   for await (
     const x of walk(rootDir, {
@@ -17,21 +18,30 @@ export async function loadEntries(rootDir: string) {
       entryDirs.push(x.dir);
     }
   }
+  const entryFiles = entryDirs.map((dir) => `${dir}/entry.dotto.ts`);
+  const entryFilesPermission = {
+    read: entryFiles.map((file) => toFileUrl(file)),
+  };
 
-  const entries: v.Output<typeof EntrySchema>[] = [];
-  for (const dir of entryDirs) {
-    const entryPath = join(dir, "entry.dotto.ts");
-    try {
-      const { default: entryLoader } = await import(entryPath);
-      if (typeof entryLoader !== "function") {
-        throw new Error(`Entry loader must be a function: ${entryPath}`);
-      }
-      const entry = v.parse(EntrySchema, await entryLoader());
-      entries.push(entry);
-    } catch (e) {
-      throw new Error(`Error loading entry: ${entryPath}\n${e.stack}`);
-    }
-  }
+  const worker = new Worker(import.meta.resolve("./entryWorker.ts"), {
+    type: "module",
+    // @ts-ignore Unstable API
+    deno: {
+      permissions: workerPermissions ?? entryFilesPermission,
+    },
+  });
+  worker.postMessage({ entryFiles } satisfies EntryWorkerArgs);
+  const { entries } = await new Promise<EntryWorkerResult>(
+    (resolve, reject) => {
+      worker.onmessage = (e) => {
+        resolve(e.data as EntryWorkerResult);
+      };
+      worker.onerror = (e) => {
+        reject(e);
+      };
+    },
+  );
+  worker.terminate();
 
-  console.log(entries);
+  return entries;
 }
