@@ -11,13 +11,15 @@ export type EntryWorkerResult = {
   entries: v.Output<typeof EntrySchema>[];
 };
 
-const EntrySchema = v.object({
+const EntrySchema = v.array(v.object({
   name: v.string(),
   entries: v.array(v.object({
     source: v.string(),
     target: v.string(),
   })),
-});
+  available: v.optional(v.boolean()),
+}));
+export type Entry = v.Output<typeof EntrySchema>;
 
 self.onmessage = async (e) => {
   const args: EntryWorkerArgs = e.data;

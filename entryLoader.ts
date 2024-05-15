@@ -19,8 +19,9 @@ export async function loadEntries(
     }
   }
   const entryFiles = entryDirs.map((dir) => `${dir}/entry.dotto.ts`);
-  const entryFilesPermission = {
+  const entryFilesPermission: Deno.PermissionOptions = {
     read: entryFiles.map((file) => toFileUrl(file)),
+    env: true,
   };
 
   const worker = new Worker(import.meta.resolve("./entryWorker.ts"), {

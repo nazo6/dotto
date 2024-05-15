@@ -1,4 +1,5 @@
 import { Command } from "@cliffy/command";
+import { Checkbox, prompt } from "@cliffy/prompt";
 import * as v from "@valibot/valibot";
 
 import { loadState } from "./state.ts";
@@ -19,15 +20,34 @@ const cli = new Command()
   .description("Deno dotfiles manager");
 
 export async function run(opts: InitOptions): Promise<void> {
-  const cmd = await cli.parse(Deno.args);
-
   const rootDir = opts?.rootDir ?? Deno.cwd();
 
   const state = await loadState(rootDir);
 
-  const entries = await loadEntries(rootDir);
+  const availableEntries = (await loadEntries(rootDir)).flat().filter((entry) =>
+    entry.available ?? true
+  );
 
-  console.log(entries);
+  const { entries: selectedEntries } = await prompt([{
+    name: "entries",
+    message: "Select entries to install:",
+    type: Checkbox,
+    options: availableEntries.map((entry) => entry.name),
+  }]);
+
+  if (selectedEntries === undefined || selectedEntries.length === 0) {
+    console.log("No entries selected");
+    return;
+  }
+
+  for (const entry of availableEntries) {
+    if (!selectedEntries.includes(entry.name)) {
+      continue;
+    }
+    for (const { source, target } of entry.entries) {
+      console.log(`Copying ${source} to ${target}`);
+    }
+  }
 }
 
 if (import.meta.main) {
@@ -39,7 +59,7 @@ if (import.meta.main) {
     throw new Error("dotto.json not found");
   }
   const config = v.parse(ConfigSchema, JSON.parse(configStr));
-  run({
+  await run({
     rootDir,
     ...config,
   });
