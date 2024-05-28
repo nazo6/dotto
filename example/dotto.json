@@ -1,2 +1,5 @@
 {
+  "workerPermissions": {
+    "read": true
+  }
 }

@@ -1,7 +1,10 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
+// This script is executed in a worker thread.
+
 import * as v from "@valibot/valibot";
+import { DottoDotfileError } from "~/common/error.ts";
 
 export type EntryWorkerArgs = {
   entryFiles: string[];
@@ -11,7 +14,7 @@ export type EntryWorkerResult = {
   entries: v.Output<typeof EntrySchema>[];
 };
 
-const EntrySchema = v.array(v.object({
+export const EntrySchema = v.array(v.object({
   name: v.string(),
   entries: v.array(v.object({
     source: v.string(),
@@ -19,7 +22,6 @@ const EntrySchema = v.array(v.object({
   })),
   available: v.optional(v.boolean()),
 }));
-export type Entry = v.Output<typeof EntrySchema>;
 
 self.onmessage = async (e) => {
   const args: EntryWorkerArgs = e.data;
@@ -29,12 +31,17 @@ self.onmessage = async (e) => {
     try {
       const { default: entryLoader } = await import(entryPath);
       if (typeof entryLoader !== "function") {
-        throw new Error(`Entry loader must be a function: ${entryPath}`);
+        throw new DottoDotfileError(
+          `Entry loader must be a function: ${entryPath}`,
+          { cause: e },
+        );
       }
       const entry = v.parse(EntrySchema, await entryLoader());
       entries.push(entry);
     } catch (e) {
-      throw new Error(`Error loading entry: ${entryPath}\n${e.stack}`);
+      throw new DottoDotfileError(`Error loading entry: ${entryPath}`, {
+        cause: e,
+      });
     }
   }
 

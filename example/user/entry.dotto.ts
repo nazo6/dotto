@@ -1,6 +1,6 @@
-import { Entry } from "../../entryWorker.ts";
+import { Entry } from "@dotto/worker/mod.ts";
 
-export default async function () {
+export default function () {
   const configDir =
     Deno.env.get("XDG_CONFIG_HOME") ?? Deno.build.os === "windows"
       ? Deno.env.get("APPDATA")
@@ -20,6 +20,13 @@ export default async function () {
       entries: [{
         source: "wezterm",
         target: `${configDir}/wezterm`,
+      }],
+    },
+    {
+      name: "gitui",
+      entries: [{
+        source: "gitui",
+        target: `${configDir}/gitui`,
       }],
     },
     {
