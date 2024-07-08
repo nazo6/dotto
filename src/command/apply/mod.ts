@@ -61,10 +61,8 @@ export async function run_apply(
       continue;
     }
     console.log(`Applying entry: ${entry.name}`);
-    for (const { source: sourceRaw, target: targetRaw } of entry.entries) {
-      const source = resolve(dotfilesRoot, sourceRaw);
-      const target = resolve(dotfilesRoot, targetRaw);
-      console.log(`  - ${source} -> ${target}`);
+    for (const { source, target } of entry.paths) {
+      console.log(`  Linking: ${source} -> ${target}`);
       const targetExists = await Deno.stat(target).then(() => true).catch(() =>
         false
       );

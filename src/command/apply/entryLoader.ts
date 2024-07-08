@@ -41,7 +41,7 @@ export async function loadEntries(
     },
   });
   worker.postMessage({ entryFiles } satisfies EntryWorkerArgs);
-  const { entries } = await new Promise<EntryWorkerResult>(
+  const { multipleFileEntries } = await new Promise<EntryWorkerResult>(
     (resolve, reject) => {
       worker.onmessage = (e) => {
         resolve(e.data as EntryWorkerResult);
@@ -53,7 +53,7 @@ export async function loadEntries(
   );
   worker.terminate();
 
-  return entries;
+  return multipleFileEntries;
 }
 
 async function getPermissions(

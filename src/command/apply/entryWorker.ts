@@ -4,19 +4,21 @@
 // This script is executed in a worker thread.
 
 import * as v from "@valibot/valibot";
+import { dirname } from "@std/path";
 import { DottoDotfileError } from "~/common/error.ts";
+import { resolve } from "~/utils/path.ts";
 
 export type EntryWorkerArgs = {
   entryFiles: string[];
 };
 
 export type EntryWorkerResult = {
-  entries: v.Output<typeof EntrySchema>[];
+  multipleFileEntries: v.Output<typeof EntrySchema>[];
 };
 
 export const EntrySchema = v.array(v.object({
   name: v.string(),
-  entries: v.array(v.object({
+  paths: v.array(v.object({
     source: v.string(),
     target: v.string(),
   })),
@@ -26,8 +28,9 @@ export const EntrySchema = v.array(v.object({
 self.onmessage = async (e) => {
   const args: EntryWorkerArgs = e.data;
 
-  const entries: v.Output<typeof EntrySchema>[] = [];
+  const multipleFileEntries: v.Output<typeof EntrySchema>[] = [];
   for (const entryPath of args.entryFiles) {
+    const entryDir = dirname(entryPath);
     try {
       const { default: entryLoader } = await import(entryPath);
       if (typeof entryLoader !== "function") {
@@ -36,8 +39,14 @@ self.onmessage = async (e) => {
           { cause: e },
         );
       }
-      const entry = v.parse(EntrySchema, await entryLoader());
-      entries.push(entry);
+      const entries = v.parse(EntrySchema, await entryLoader());
+      for (const entry of entries) {
+        for (const path of entry.paths) {
+          path.source = resolve(entryDir, path.source);
+          path.target = resolve(entryDir, path.target);
+        }
+      }
+      multipleFileEntries.push(entries);
     } catch (e) {
       throw new DottoDotfileError(`Error loading entry: ${entryPath}`, {
         cause: e,
@@ -45,5 +54,5 @@ self.onmessage = async (e) => {
     }
   }
 
-  self.postMessage({ entries } satisfies EntryWorkerResult);
+  self.postMessage({ multipleFileEntries } satisfies EntryWorkerResult);
 };

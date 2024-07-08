@@ -9,7 +9,7 @@ export default function () {
   return [
     {
       name: "tmux",
-      entries: [{
+      paths: [{
         source: "tmux.conf",
         target: "~/tmux.conf",
       }],
@@ -17,21 +17,21 @@ export default function () {
     },
     {
       name: "wezterm",
-      entries: [{
+      paths: [{
         source: "wezterm",
         target: `${configDir}/wezterm`,
       }],
     },
     {
       name: "gitui",
-      entries: [{
+      paths: [{
         source: "gitui",
         target: `${configDir}/gitui`,
       }],
     },
     {
       name: "PowerShell",
-      entries: [{
+      paths: [{
         source: "PowerShell",
         target: "~/Documents/PowerShell",
       }],
