@@ -1,59 +1,31 @@
-import { toFileUrl } from "@std/path";
+import { join, toFileUrl } from "@std/path";
 import { deepMerge } from "@std/collections/deep-merge";
 
-import { walk } from "@svarta/walk-it";
 import { Confirm } from "@cliffy/prompt";
 
-import { EntryWorkerArgs, EntryWorkerResult } from "./entryWorker.ts";
 import { State } from "~/common/state.ts";
 import { DottoUserCancelledError } from "~/common/error.ts";
+import { executeWorker } from "~/common/worker.ts";
+import { Entries } from "~/command/apply/entryWorker.ts";
 
 export async function loadEntries(
   rootDir: string,
   requestedPermissions: Deno.PermissionOptionsObject | null,
   state: State,
-) {
+): Promise<Entries> {
   const workerPermissions = await getPermissions(
     rootDir,
     requestedPermissions,
     state,
   );
 
-  const entryDirs: string[] = [];
-  for await (
-    const x of walk(rootDir, {
-      filterFolder: (_, path) => {
-        return !entryDirs.some((dir) => path.startsWith(dir));
-      },
-    })
-  ) {
-    if (x.files.some((file) => file.name === "entry.dotto.ts")) {
-      entryDirs.push(x.dir);
-    }
-  }
-  const entryFiles = entryDirs.map((dir) => `${dir}/entry.dotto.ts`);
-
-  const worker = new Worker(import.meta.resolve("./entryWorker.ts"), {
-    type: "module",
-    // @ts-ignore Unstable API
-    deno: {
-      permissions: workerPermissions,
-    },
-  });
-  worker.postMessage({ entryFiles } satisfies EntryWorkerArgs);
-  const { multipleFileEntries } = await new Promise<EntryWorkerResult>(
-    (resolve, reject) => {
-      worker.onmessage = (e) => {
-        resolve(e.data as EntryWorkerResult);
-      };
-      worker.onerror = (e) => {
-        reject(e);
-      };
-    },
+  const entries: Entries = await executeWorker(
+    import.meta.resolve("./entryWorker.ts"),
+    workerPermissions,
+    join(rootDir, "dotto.ts"),
   );
-  worker.terminate();
 
-  return multipleFileEntries;
+  return entries;
 }
 
 async function getPermissions(

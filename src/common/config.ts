@@ -1,23 +1,24 @@
-import * as v from "@valibot/valibot";
-import { join } from "@std/path";
+import { join, toFileUrl } from "@std/path";
 import { DottoDotfileError } from "~/common/error.ts";
+import { executeWorker } from "~/common/worker.ts";
 
-const DotfileConfigSchema = v.object({
-  workerPermissions: v.optional(v.any()),
-});
-export type DotfileConfig = v.Output<typeof DotfileConfigSchema>;
-
-export async function loadConfig(dir: string) {
-  let configStr: string;
+export type StaticConfig = {
+  permissions: Deno.PermissionOptionsObject;
+};
+export async function loadConfig(dir: string): Promise<StaticConfig> {
+  const configPath = join(dir, "dotto.ts");
   try {
-    configStr = await Deno.readTextFile(join(dir, "dotto.json"));
-  } catch (_e) {
-    return null;
-  }
-
-  try {
-    return v.parse(DotfileConfigSchema, JSON.parse(configStr));
+    await Deno.stat(configPath);
   } catch (e) {
-    throw new DottoDotfileError(`Invalid dotto.json at ${dir}`, { cause: e });
+    throw new DottoDotfileError(`Could not read dotto.ts at ${dir}`, {
+      cause: e,
+    });
   }
+  const config: StaticConfig = await executeWorker(
+    import.meta.resolve("./configWorker.ts"),
+    { read: [toFileUrl(dir)], env: true },
+    configPath,
+  );
+
+  return config;
 }

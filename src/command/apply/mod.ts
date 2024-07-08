@@ -2,17 +2,17 @@ import { Checkbox, Confirm, prompt } from "@cliffy/prompt";
 
 import { loadEntries } from "./entryLoader.ts";
 import { State } from "~/common/state.ts";
-import { DotfileConfig } from "~/common/config.ts";
 import {
   DottoAnyError,
   DottoCancelledError,
   DottoUserCancelledError,
 } from "~/common/error.ts";
 import { resolve } from "~/utils/path.ts";
+import { StaticConfig } from "~/common/config.ts";
 
 export async function run_apply(
   dotfilesRoot: string,
-  config: DotfileConfig,
+  config: StaticConfig,
   state: State,
 ): Promise<void> {
   const s = state.read();
@@ -40,9 +40,11 @@ export async function run_apply(
     });
   }
 
-  const availableEntries =
-    (await loadEntries(dotfilesRoot, config.workerPermissions, state)).flat()
-      .filter((entry) => entry.available ?? true);
+  const availableEntries = await loadEntries(
+    dotfilesRoot,
+    config.permissions,
+    state,
+  );
 
   const { entries: selectedEntries } = await prompt([{
     name: "entries",
@@ -61,7 +63,10 @@ export async function run_apply(
       continue;
     }
     console.log(`Applying entry: ${entry.name}`);
-    for (const { source, target } of entry.paths) {
+    for (const { source: sourceRaw, target: targetRaw } of entry.paths) {
+      const source = resolve(dotfilesRoot, sourceRaw);
+      const target = resolve(dotfilesRoot, targetRaw);
+
       console.log(`  Linking: ${source} -> ${target}`);
       const targetExists = await Deno.stat(target).then(() => true).catch(() =>
         false

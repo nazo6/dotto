@@ -1,4 +1,7 @@
 import * as v from "@valibot/valibot";
-import { EntrySchema } from "../command/apply/entryWorker.ts";
+import { Entries } from "../command/apply/entryWorker.ts";
 
-export type Entry = v.Output<typeof EntrySchema>;
+export type DottoConfig = {
+  permissions: Deno.PermissionOptionsObject;
+  entry: () => Promise<Entries> | Entries;
+};
