@@ -1,10 +1,8 @@
-import { DottoConfig } from "@dotto/worker/mod.ts";
-import { Entries } from "~/command/apply/entryWorker.ts";
+import { DottoConfig, Entries } from "@dotto/worker/mod.ts";
 
 /*
- * `dotto.ts` config file is executed once without any permissions to get permissions config.
- * After that, entry function is called with requested permissions.
- * So, don't do something require permissions outside entry function.
+ * The dotto.ts file is first run with only read and env permissions to read "static" settings such as request permissions.
+ * Next, once the specified permissions are granted to the user, the entry function is executed with those permissions.
  */
 
 const config: DottoConfig = {
@@ -29,21 +27,21 @@ const config: DottoConfig = {
       {
         name: "wezterm",
         paths: [{
-          source: "wezterm",
+          source: "user/wezterm",
           target: `${configDir}/wezterm`,
         }],
       },
       {
         name: "gitui",
         paths: [{
-          source: "gitui",
+          source: "user/gitui",
           target: `${configDir}/gitui`,
         }],
       },
       {
         name: "PowerShell",
         paths: [{
-          source: "PowerShell",
+          source: "user/PowerShell",
           target: "~/Documents/PowerShell",
         }],
         available: Deno.build.os === "windows",

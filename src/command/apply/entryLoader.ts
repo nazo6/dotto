@@ -1,4 +1,4 @@
-import { join, toFileUrl } from "@std/path";
+import { join } from "@std/path";
 import { deepMerge } from "@std/collections/deep-merge";
 
 import { Confirm } from "@cliffy/prompt";
@@ -14,7 +14,6 @@ export async function loadEntries(
   state: State,
 ): Promise<Entries> {
   const workerPermissions = await getPermissions(
-    rootDir,
     requestedPermissions,
     state,
   );
@@ -29,12 +28,11 @@ export async function loadEntries(
 }
 
 async function getPermissions(
-  rootDir: string,
   requestedPermissions: Deno.PermissionOptionsObject | null,
   state: State,
 ) {
   const defaultWorkerPermissions: Deno.PermissionOptionsObject = {
-    read: [toFileUrl(rootDir)],
+    read: true,
     env: true,
   };
   const workerPermissions = requestedPermissions

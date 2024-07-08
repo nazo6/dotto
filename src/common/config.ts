@@ -1,4 +1,4 @@
-import { join, toFileUrl } from "@std/path";
+import { join } from "@std/path";
 import { DottoDotfileError } from "~/common/error.ts";
 import { executeWorker } from "~/common/worker.ts";
 
@@ -16,7 +16,7 @@ export async function loadConfig(dir: string): Promise<StaticConfig> {
   }
   const config: StaticConfig = await executeWorker(
     import.meta.resolve("./configWorker.ts"),
-    { read: [toFileUrl(dir)], env: true },
+    { read: true, env: true },
     configPath,
   );
 

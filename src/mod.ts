@@ -16,8 +16,8 @@ async function main() {
   } catch (e) {
     if (e instanceof DottoError) {
       console.error(
-        `${colors.bgRed(` ${e.name} `)} ${colors.red(e.message)}\n${
-          colors.gray("Caused by: " + e.cause)
+        `${colors.bgRed(` ${e.name} `)} ${colors.red(e.message)}${
+          e.cause ? colors.gray("\nCaused by: " + e.cause) : ""
         }`,
       );
       Deno.exit(1);
@@ -43,10 +43,6 @@ async function mainInner() {
     .command("apply", "Apply dotfiles at working directory")
     .action(async () => {
       const config = await loadConfig(rootDir);
-      if (!config) {
-        console.error("No dotto.json found in the current directory");
-        Deno.exit(1);
-      }
 
       await run_apply(
         rootDir,

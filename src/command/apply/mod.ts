@@ -85,6 +85,9 @@ export async function run_apply(
         );
       }
     }
+    await state.update((s) => {
+      s.applied?.installed.push(entry.name);
+    });
   }
 
   console.log("Apply completed");
